@@ -1,0 +1,19 @@
+FROM mcr.microsoft.com/dotnet/sdk:3.1 AS build
+
+#Label image with maintainer 
+LABEL Maintainer="Andrey Klochaniy (andrey.klochaniy@gmail.com)"
+
+WORKDIR /project
+COPY . .
+RUN dotnet publish -c Release --output /app
+
+FROM build as testrunner
+CMD dotnet test --no-restore --logger trx --results-directory test-results
+
+FROM mcr.microsoft.com/dotnet/aspnet:3.1 AS app
+WORKDIR /app
+EXPOSE 80
+
+COPY --from=build /app .
+
+ENTRYPOINT ["dotnet", "app.dll"]
